@@ -13,6 +13,7 @@ var REG_SUB = /([\s]href=|[\s]src=)|['"]|[\s:]url\(|\)/g;
 
 function plugin(options){
   var cache = [];
+  options = options || {};
   return through.obj(function(file, enc, cb){
     if(file.isNull()){
       this.push(file);
@@ -30,6 +31,7 @@ function plugin(options){
     var manifestObj = {};
     var HTML_MATCHED = 0;
     var REPLACED = 0;
+    var DOMAIN = '/';
 
     if(options.manifest){
       options.manifest.on('data', function(file){
@@ -38,13 +40,17 @@ function plugin(options){
       options.manifest.on('end', replace);
     }
 
+    if(options.prefix){
+      DOMAIN = options.prefix.replace(/\/$/, '') + '/';
+    }
+
     function replace(){
 
       cache.forEach(function(file){
         var fileContent = file.contents.toString();
         var filePath = file.history[0].replace(/\\[a-zA-Z_\-\d\.]+$/, '');
         var base = file.base;
-        console.log('\n checking file...' + file.history[0]);
+        console.log('\nchecking file...' + file.history[0]);
 
         fileContent.replace(REG_HTML, function(matchString){
           HTML_MATCHED++;
@@ -58,8 +64,8 @@ function plugin(options){
           absoluteUrl = absoluteUrl.split(path.sep).join('/');
           var result = '';
           if(manifestObj[absoluteUrl]){
-            console.log(url + '  =>  /' + manifestObj[absoluteUrl]);
-            result = matchString.split(url).join('/' + manifestObj[absoluteUrl]);
+            result = matchString.split(url).join(DOMAIN + manifestObj[absoluteUrl]);
+            console.log(url + '  =>  ' + DOMAIN + manifestObj[absoluteUrl]);
             REPLACED++;
           }else{
             console.log('not find in manifest  =>  ' + matchString);
@@ -68,11 +74,13 @@ function plugin(options){
           return result;
         });
 
+        file.contents = new Buffer(fileContent);
+
         stream.push(file);
 
       });
 
-      console.log('\n HTML_MATCHED:' + HTML_MATCHED + ' REPLACED:' + REPLACED);
+      console.log('\nHTML_MATCHED:' + HTML_MATCHED + ' REPLACED:' + REPLACED + '\n');
 
       cb();
 
