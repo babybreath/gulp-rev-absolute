@@ -1,0 +1,27 @@
+{
+  "name": "gulp-rev-absolute",
+  "version": "0.0.2",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/babybreath/gulp-rev-absolute.git"
+  },
+  "keywords": ["gulpplugin", "rev", "replace", "relative"],
+  "author": "",
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/babybreath/gulp-rev-absolute/issues"
+  },
+  "homepage": "https://github.com/babybreath/gulp-rev-absolute#readme",
+  "dependencies": {
+    "gulp-util": "^3.0.7",
+    "through2": "^2.0.1"
+  }
+}
