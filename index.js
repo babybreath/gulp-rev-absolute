@@ -52,20 +52,22 @@ function plugin(options){
         var base = file.base;
         console.log('\nchecking file...' + file.history[0]);
 
-        fileContent.replace(REG_HTML, function(matchString){
+        fileContent = fileContent.replace(REG_HTML, function(matchString){
           HTML_MATCHED++;
           var url = matchString.replace(REG_SUB, '');
           var absoluteUrl = '';
+          var resultUrl = '';
+          var result = '';
           if(url.indexOf('/') === 0){
             absoluteUrl = url.replace(/^\//, '');
           }else{
             absoluteUrl = path.join(filePath, url).replace(base, '');
           }
           absoluteUrl = absoluteUrl.split(path.sep).join('/');
-          var result = '';
           if(manifestObj[absoluteUrl]){
-            result = matchString.split(url).join(DOMAIN + manifestObj[absoluteUrl]);
-            console.log(url + '  =>  ' + DOMAIN + manifestObj[absoluteUrl]);
+            resultUrl = DOMAIN + manifestObj[absoluteUrl];
+            result = matchString.split(url).join(resultUrl);
+            console.log(url + '  =>  ' + resultUrl);
             REPLACED++;
           }else{
             console.log('not find in manifest  =>  ' + matchString);
