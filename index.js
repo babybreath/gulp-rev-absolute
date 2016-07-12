@@ -68,6 +68,7 @@ function plugin(options){
       cache.forEach(function(file){
         var fileContent = file.contents.toString();
         var filePath = path.dirname(file.history[0]);
+        var extname = path.extname(file.history[0]);
         log('\nchecking file...' + file.history[0]);
 
         fileContent = fileContent.replace(REG_HTML, function(matchString){
@@ -82,7 +83,12 @@ function plugin(options){
             absoluteUrl = path.join(filePath, url).split(path.sep).join('/').replace(base, '').replace(/^\//, '');
           }
           if(manifestObj[absoluteUrl]){
-            resultUrl = DOMAIN + manifestObj[absoluteUrl];
+            if(extname == '.js' || extname == '.css'){
+              resultUrl = path.relative(filePath, path.join(base,manifestObj[absoluteUrl])).split(path.sep).join('/');
+            }else{
+              resultUrl = DOMAIN + manifestObj[absoluteUrl];
+            }
+
             result = matchString.split(url).join(resultUrl);
             log(url + '  =>  ' + resultUrl);
             REPLACED++;
