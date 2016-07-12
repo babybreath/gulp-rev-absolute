@@ -8,7 +8,7 @@ var through = require('through2');
 
 var PLUGINNAME = 'gulp-rev-replace';
 
-var REG_HTML = /([\s]href=|[\s]src=)['"][a-zA-Z_\-\d\.\/]+['"]|[\s:]url\(['"]?[a-zA-Z_\-\d\.\/]+['"]?\)/g;
+var REG_HTML = /([\s]href=|[\s]src=)['"][a-zA-Z_\-\d\.\/]+['"]|[\s:]url\(['"]?[a-zA-Z_\-\d\.\/]+['"]?\)|['"][a-zA-Z_\-\d\.\/]+\?useReplace['"]/g;
 var REG_SUB = /([\s]href=|[\s]src=)|['"]|[\s:]url\(|\)/g;
 
 function plugin(options){
@@ -74,6 +74,11 @@ function plugin(options){
         fileContent = fileContent.replace(REG_HTML, function(matchString){
           HTML_MATCHED++;
           var url = matchString.replace(REG_SUB, '');
+          var useReplace = false;
+          if(/\?useReplace$/.test(url)){
+            url = url.replace(/\?useReplace$/, '');
+            useReplace = true;
+          }
           var absoluteUrl = '';
           var resultUrl = '';
           var result = '';
@@ -83,10 +88,16 @@ function plugin(options){
             absoluteUrl = path.join(filePath, url).split(path.sep).join('/').replace(base, '').replace(/^\//, '');
           }
           if(manifestObj[absoluteUrl]){
-            if(extname == '.js' || extname == '.css'){
+            if(extname == '.css'){
               resultUrl = path.relative(filePath, path.join(base,manifestObj[absoluteUrl])).split(path.sep).join('/');
+            }else if(extname == '.js'){
+              resultUrl = '/' + manifestObj[absoluteUrl];
             }else{
               resultUrl = DOMAIN + manifestObj[absoluteUrl];
+            }
+
+            if(useReplace){
+              url = url + '?useReplace';
             }
 
             result = matchString.split(url).join(resultUrl);
@@ -105,7 +116,7 @@ function plugin(options){
 
       });
 
-      console.log('\nMATCHED:' + HTML_MATCHED + ' REPLACED:' + REPLACED + '\n');
+      console.log('\nFOUND:' + HTML_MATCHED + ' REPLACED:' + REPLACED + '\n');
 
       cb();
 
