@@ -13,14 +13,33 @@ var REG_SUB = /([\s]href=|[\s]src=)|['"]|[\s:]url\(|\)/g;
 
 function plugin(options){
   var cache = [];
+  var base;
   options = options || {};
+
+  if(options.hasOwnProperty('base') && path.isAbsolute(options.base)){
+    base = options.base.split(path.sep).join('/');
+    console.log('\nbase => ' + base);
+  }else{
+    base = false;
+  }
+
+  var isLog = options.log || false;
+
+  function log(msg){
+    isLog && console.log(msg);
+  }
+
   return through.obj(function(file, enc, cb){
     if(file.isNull()){
       this.push(file);
       return cb();
     }
     if(file.isStream()){
-      this.emit('error', new gutil.PluginError(PLUGINNAME, 'Streaming not supported'));
+      this.emit('error', new gutil.PluginError(PLUGINNAME, 'Streaming not supported.'));
+      return cb();
+    }
+    if(!base){
+      this.emit('error', new gutil.PluginError(PLUGINNAME, 'param base required and must be absolute'));
       return cb();
     }
     cache.push(file);
@@ -48,9 +67,8 @@ function plugin(options){
 
       cache.forEach(function(file){
         var fileContent = file.contents.toString();
-        var filePath = file.history[0].replace(/\\[a-zA-Z_\-\d\.]+$/, '');
-        var base = file.base;
-        console.log('\nchecking file...' + file.history[0]);
+        var filePath = path.dirname(file.history[0]);
+        log('\nchecking file...' + file.history[0]);
 
         fileContent = fileContent.replace(REG_HTML, function(matchString){
           HTML_MATCHED++;
@@ -61,16 +79,15 @@ function plugin(options){
           if(url.indexOf('/') === 0){
             absoluteUrl = url.replace(/^\//, '');
           }else{
-            absoluteUrl = path.join(filePath, url).replace(base, '');
+            absoluteUrl = path.join(filePath, url).split(path.sep).join('/').replace(base, '').replace(/^\//, '');
           }
-          absoluteUrl = absoluteUrl.split(path.sep).join('/');
           if(manifestObj[absoluteUrl]){
             resultUrl = DOMAIN + manifestObj[absoluteUrl];
             result = matchString.split(url).join(resultUrl);
-            console.log(url + '  =>  ' + resultUrl);
+            log(url + '  =>  ' + resultUrl);
             REPLACED++;
           }else{
-            console.log('not find in manifest  =>  ' + matchString);
+            log('not find in manifest  =>  ' + matchString);
             result = matchString;
           }
           return result;
@@ -82,7 +99,7 @@ function plugin(options){
 
       });
 
-      console.log('\nHTML_MATCHED:' + HTML_MATCHED + ' REPLACED:' + REPLACED + '\n');
+      console.log('\nMATCHED:' + HTML_MATCHED + ' REPLACED:' + REPLACED + '\n');
 
       cb();
 
