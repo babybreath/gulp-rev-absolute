@@ -1,6 +1,7 @@
 # gulp-rev-absolute
 
-Rewrite occurences of filenames which have been renamed by gulp-rev. Support relative.
+Rewrite occurences of filenames which have been renamed by gulp-rev.
+重置gulp-rev处理后的文件的引用路径，在css中的路径为相对路径，在js中的路径为绝对路径
 
 ## Install
 ```bash
@@ -27,7 +28,7 @@ gulp.task('img', [], function(){
 gulp.task('css', ['img'], function(){
     var imgManifest = gulp.src(buildPath + "/imgManifest.json");
     return gulp.src(srcCss)
-        .pipe(revAbsolute({manifest: imgManifest, base: baseUrl, prefix: domain}))
+        .pipe(revAbsolute({manifest: imgManifest, base: baseUrl}))
         .pipe(gulp.dest(buildPath))
 
 });
